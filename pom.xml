@@ -1,0 +1,304 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>ca.bell.NetworkBigData</groupId>
+  <artifactId>nbd-watchdog</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <description>A watch dog that watches your data pipeline and barks to you if your pipeline is killed accidentaly and fails to send you an alarm by itself.</description>
+  <inceptionYear>2019</inceptionYear>
+
+  <properties>
+    <scoverage.plugin.version>1.3.0</scoverage.plugin.version>
+    <scala.maven.plugin.version>3.3.2</scala.maven.plugin.version>
+    <maven.source.plugin.version>3.0.1</maven.source.plugin.version>
+    <scalatest.plugin.version>2.0.0</scalatest.plugin.version>
+    <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
+    <maven.surefile.plugin.version>2.21.0</maven.surefile.plugin.version>
+    <scala.tools.version>2.11</scala.tools.version>
+    <scala.version>2.11.12</scala.version>
+    <fox.version>4.6.0</fox.version>
+    <maven.deploy.plugin.version>2.8.1</maven.deploy.plugin.version>
+    <maven.shade.plugin.version>3.2.1</maven.shade.plugin.version>
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.scala-lang.modules</groupId>
+      <artifactId>scala-xml_${scala.tools.version}</artifactId>
+      <version>1.1.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-reflect</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-compiler</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.scalactic</groupId>
+      <artifactId>scalactic_${scala.tools.version}</artifactId>
+      <version>3.0.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.scalatest</groupId>
+      <artifactId>scalatest_${scala.tools.version}</artifactId>
+      <version>3.0.3</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- FOX -->
+    <dependency>
+      <groupId>ca.bell.NetworkBigData</groupId>
+      <artifactId>fox-core</artifactId>
+      <version>${fox.version}</version>
+    </dependency>
+
+    <!-- a scala scheduler -->
+    <dependency>
+      <groupId>com.typesafe.akka</groupId>
+      <artifactId>akka-actor_${scala.tools.version}</artifactId>
+      <version>2.5.16</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/com.typesafe.play/play-json -->
+    <dependency>
+      <groupId>com.typesafe.play</groupId>
+      <artifactId>play-json_2.11</artifactId>
+      <version>2.6.10</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/joda-time/joda-time -->
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>2.10.1</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.mockito/mockito-all -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.10.19</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.scalaj/scalaj-http -->
+    <dependency>
+      <groupId>org.scalaj</groupId>
+      <artifactId>scalaj-http_${scala.tools.version}</artifactId>
+      <version>2.4.1</version>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <finalName>${project.artifactId}</finalName>
+    <plugins>
+      <!-- The scala-maven plugin allows compiling Scala code with Maven. No Scala SDK needed. -->
+      <plugin>
+        <groupId>net.alchim31.maven</groupId>
+        <artifactId>scala-maven-plugin</artifactId>
+        <version>${scala.maven.plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>add-source</goal>
+              <goal>compile</goal>
+              <goal>testCompile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Run tests -->
+      <plugin>
+        <groupId>org.scalatest</groupId>
+        <artifactId>scalatest-maven-plugin</artifactId>
+        <version>${scalatest.plugin.version}</version>
+        <configuration>
+          <!--argLine>-Xmx4096m -XX:MaxPermSize=4096m</argLine-->
+          <argLine>-Xmx1024m -Dsun.io.serialization.extendedDebugInfo=true</argLine>
+          <stdout>F</stdout>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Check Scala code coverage -->
+      <plugin>
+        <groupId>org.scoverage</groupId>
+        <artifactId>scoverage-maven-plugin</artifactId>
+        <version>${scoverage.plugin.version}</version>
+        <configuration>
+          <minimumCoverage>70</minimumCoverage>
+          <failOnMinimumCoverage>false</failOnMinimumCoverage>
+          <highlighting>true</highlighting>
+        </configuration>
+      </plugin>
+
+      <!--Disable surefire tests-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven.surefile.plugin.version}</version>
+        <configuration>
+          <skipTests>true</skipTests>
+          <argLine>-Xmx4096m -XX:MaxPermSize=4096m</argLine>
+        </configuration>
+      </plugin>
+
+      <!--style check for scala -->
+      <plugin>
+        <groupId>org.scalastyle</groupId>
+        <artifactId>scalastyle-maven-plugin</artifactId>
+        <version>1.0.0</version>
+        <configuration>
+          <verbose>false</verbose>
+          <failOnViolation>true</failOnViolation>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <failOnWarning>false</failOnWarning>
+          <sourceDirectory>${project.basedir}/src/main/scala</sourceDirectory>
+          <testSourceDirectory>${project.basedir}/src/test/scala</testSourceDirectory>
+          <configLocation>${project.basedir}/lib/scalastyle_config.xml</configLocation>
+          <outputFile>${project.basedir}/scalastyle-output.xml</outputFile>
+          <outputEncoding>UTF-8</outputEncoding>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Skip deploying JAR file to Nexus, only need to deploy docker image  -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>${maven.deploy.plugin.version}</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+
+      <!-- Shade -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>${maven.shade.plugin.version}</version>
+        <executions>
+          <!-- Run shade goal on package phase -->
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <filters>
+            <filter>
+              <artifact>*:*</artifact>
+              <excludes>
+                <exclude>META-INF/*.SF</exclude>
+                <exclude>META-INF/*.DSA</exclude>
+                <exclude>META-INF/*.RSA</exclude>
+              </excludes>
+            </filter>
+          </filters>
+          <transformers>
+            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+              <mainClass>ca.bell.NetworkBigData.Watchdog.WatchdogMain</mainClass>
+            </transformer>
+          </transformers>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>${docker.maven.plugin.version}</version>
+        <configuration>
+          <verbose>true</verbose>
+          <apiVersion>1.37</apiVersion>
+          <registry>${nbd.nexus.docker.pullurl}</registry>
+          <pushRegistry>${nbd.nexus.docker.pushurl}</pushRegistry>
+          <images>
+            <image>
+              <name>${docker.image.prefix}/${project.artifactId}:%l</name>
+              <alias>${project.artifactId}</alias>
+              <build>
+                <filter>@</filter>
+                <cleanup>try</cleanup>
+                <dockerFile>Dockerfile</dockerFile>
+                <dockerFileDir>${project.basedir}</dockerFileDir>
+                <args>
+                  <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
+                </args>
+              </build>
+            </image>
+          </images>
+        </configuration>
+        <executions>
+          <execution>
+            <id>push-images</id>
+            <phase>deploy</phase>
+            <goals>
+              <goal>build</goal>
+              <goal>push</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+        <plugin>
+          <groupId>org.antipathy</groupId>
+          <artifactId>mvn-scalafmt_${scala.tools.version}</artifactId>
+          <version>0.10_1.5.1</version>
+          <configuration>
+            <parameters>--diff</parameters> <!-- (Optional) Additional command line arguments -->
+            <skip>false</skip> <!-- (Optional) skip formatting -->
+            <skiptest>false</skiptest> <!-- (Optional) Skip formatting test sources -->
+            <skipmain>false</skipmain> <!-- (Optional) Skip formatting main sources -->
+            <configLocation>${project.basedir}/lib/scalafmt.conf</configLocation> <!-- (Optional) config location -->
+            <configRequired>false</configRequired><!-- (Optional) raise an error if configLocation is missing or invalid (otherwise use Scalafmt defaults) -->
+            <sourceDirectories> <!-- (Optional) Paths to source-directories. Overrides ${project.build.sourceDirectory} -->
+              <param>${project.basedir}/src/main/scala</param>
+            </sourceDirectories>
+            <testSourceDirectories> <!-- (Optional) Paths to test-source-directories. Overrides ${project.build.testSourceDirectory} -->
+              <param>${project.basedir}/src/test/scala</param>
+            </testSourceDirectories>
+          </configuration>
+          <executions>
+            <execution>
+              <phase>validate</phase>
+              <goals>
+                <goal>format</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+
+  </build>
+
+</project>
